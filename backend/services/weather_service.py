@@ -31,20 +31,24 @@ async def get_weather(city: str) -> float:
             return 50.0
 
         lat, lon = coords
+
+        # use 2.5 API — no subscription needed
         url = (
-            f"https://api.openweathermap.org/data/3.0/onecall"
+            f"https://api.openweathermap.org/data/2.5/weather"
             f"?lat={lat}&lon={lon}&appid={OWM_KEY}&units=metric"
-            f"&exclude=minutely,hourly,daily,alerts"
         )
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url, timeout=10)
             data = response.json()
 
-        current  = data["current"]
-        temp     = current["temp"]
-        humidity = current["humidity"]
-        uv       = current.get("uvi", 0)
+        if "main" not in data:
+            print(f"Weather error for {city}: {data}")
+            return 50.0
+
+        temp     = data["main"]["temp"]
+        humidity = data["main"]["humidity"]
+        uv       = 0.0  # not in 2.5 API
 
         heat_score     = normalize_heat(temp)
         humidity_score = normalize_humidity(humidity)
