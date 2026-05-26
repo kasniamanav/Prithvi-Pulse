@@ -10,7 +10,7 @@ from services.traffic_service    import get_traffic
 from services.weather_service    import get_weather
 from services.population_service import get_population
 from services.noise_service      import get_noise
-from services.cities             import get_city_list, city_exists
+from services.cities             import get_city_list, city_exists, CITY_COORDS
 from csi.calculator              import calculate_csi
 from database                    import get_city_history, get_latest_all_cities, save_city_score
 
@@ -24,11 +24,22 @@ def all_cities():
         "cities": cities
     }
 
+@router.get("/api/cities/coords")
+def all_city_coords():
+    cities = [
+        {"name": name, "lat": lat, "lon": lon}
+        for name, (lat, lon) in CITY_COORDS.items()
+    ]
+    return {
+        "total":  len(cities),
+        "cities": cities
+    }
+
 @router.get("/api/dashboard")
 def dashboard():
     data = get_latest_all_cities()
     if not data:
-        return {"message": "No data yet — wait for scheduler to run"}
+        return {"message": "No data yet", "cities": []}
     return {
         "total":  len(data),
         "cities": data
