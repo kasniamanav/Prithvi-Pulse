@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from "react-le
 import axios from "axios"
 import "leaflet/dist/leaflet.css"
 
-const API = "http://127.0.0.1:8000"
+const API = "https://prithvi-pulse.onrender.com"
 
 function getColor(csi) {
   if (csi >= 80) return "#ef4444"
