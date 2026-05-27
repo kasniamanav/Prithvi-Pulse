@@ -1,19 +1,19 @@
 // src/components/Dashboard.jsx
 
 function getColor(csi) {
-  if (csi >= 80) return "bg-red-500"
-  if (csi >= 60) return "bg-orange-500"
-  if (csi >= 40) return "bg-yellow-500"
-  if (csi >= 20) return "bg-green-500"
-  return "bg-blue-500"
+  if (csi >= 80) return "#ef4444"
+  if (csi >= 60) return "#f97316"
+  if (csi >= 40) return "#eab308"
+  if (csi >= 20) return "#22c55e"
+  return "#3b82f6"
 }
 
-function getTextColor(csi) {
-  if (csi >= 80) return "text-red-400"
-  if (csi >= 60) return "text-orange-400"
-  if (csi >= 40) return "text-yellow-400"
-  if (csi >= 20) return "text-green-400"
-  return "text-blue-400"
+function getGlow(csi) {
+  if (csi >= 80) return "0 0 20px #ef444440"
+  if (csi >= 60) return "0 0 20px #f9731640"
+  if (csi >= 40) return "0 0 20px #eab30840"
+  if (csi >= 20) return "0 0 20px #22c55e40"
+  return "0 0 20px #3b82f640"
 }
 
 export default function Dashboard({ dashboard, onCityClick }) {
@@ -21,90 +21,109 @@ export default function Dashboard({ dashboard, onCityClick }) {
 
   if (!dashboard.length) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-slate-400">Loading dashboard data...</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "400px" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>⏳</div>
+          <p style={{ color: "#64748b" }}>Loading city data...</p>
+        </div>
       </div>
     )
   }
 
-  return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold mb-2">City Stress Dashboard</h2>
-      <p className="text-slate-400 text-sm mb-6">
-        Live CSI scores for Indian cities — updated every hour
-      </p>
+  const avg = (dashboard.reduce((a, b) => a + b.csi, 0) / dashboard.length).toFixed(1)
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <p className="text-slate-400 text-xs mb-1">Total Cities</p>
-          <p className="text-2xl font-bold text-white">{dashboard.length}</p>
-        </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <p className="text-slate-400 text-xs mb-1">Most Stressed</p>
-          <p className="text-lg font-bold text-red-400 capitalize">
-            {sorted[0]?.city}
-          </p>
-          <p className="text-xs text-red-300">{sorted[0]?.csi} CSI</p>
-        </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <p className="text-slate-400 text-xs mb-1">Least Stressed</p>
-          <p className="text-lg font-bold text-green-400 capitalize">
-            {sorted[sorted.length - 1]?.city}
-          </p>
-          <p className="text-xs text-green-300">
-            {sorted[sorted.length - 1]?.csi} CSI
-          </p>
-        </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <p className="text-slate-400 text-xs mb-1">Average CSI</p>
-          <p className="text-2xl font-bold text-yellow-400">
-            {(dashboard.reduce((a, b) => a + b.csi, 0) / dashboard.length).toFixed(1)}
-          </p>
-        </div>
+  return (
+    <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}>
+
+      {/* Title */}
+      <div style={{ marginBottom: "32px" }}>
+        <h2 style={{ fontSize: "28px", fontWeight: "800", color: "#fff", marginBottom: "8px" }}>
+          🇮🇳 India City Stress Dashboard
+        </h2>
+        <p style={{ color: "#64748b", fontSize: "14px" }}>
+          Real-time City Stress Index for major Indian cities — updated every hour
+        </p>
       </div>
 
-      {/* City cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Summary cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "32px" }}>
+        {[
+          { label: "Cities Monitored", value: dashboard.length, color: "#22c55e", icon: "🏙️" },
+          { label: "Most Stressed", value: sorted[0]?.city, color: "#ef4444", icon: "🔴", sub: `CSI ${sorted[0]?.csi}` },
+          { label: "Least Stressed", value: sorted[sorted.length-1]?.city, color: "#22c55e", icon: "🟢", sub: `CSI ${sorted[sorted.length-1]?.csi}` },
+          { label: "Average CSI", value: avg, color: "#eab308", icon: "📊" },
+        ].map(card => (
+          <div key={card.label} style={{
+            background: "linear-gradient(135deg, #0f172a, #1e293b)",
+            borderRadius: "16px", padding: "20px",
+            border: "1px solid #1e293b",
+            boxShadow: `0 0 24px ${card.color}20`
+          }}>
+            <div style={{ fontSize: "24px", marginBottom: "8px" }}>{card.icon}</div>
+            <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "1px" }}>
+              {card.label}
+            </p>
+            <p style={{ fontSize: "22px", fontWeight: "800", color: card.color, textTransform: "capitalize" }}>
+              {card.value}
+            </p>
+            {card.sub && <p style={{ fontSize: "11px", color: "#64748b" }}>{card.sub}</p>}
+          </div>
+        ))}
+      </div>
+
+      {/* City cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
         {sorted.map((city, index) => (
           <div
             key={city.city}
             onClick={() => onCityClick(city.city.toLowerCase())}
-            className="bg-slate-800 rounded-xl p-4 border border-slate-700 cursor-pointer hover:border-green-500 transition-all hover:scale-105"
+            style={{
+              background: "linear-gradient(135deg, #0f172a, #1e293b)",
+              borderRadius: "16px", padding: "20px",
+              border: `1px solid ${getColor(city.csi)}30`,
+              cursor: "pointer", transition: "all 0.2s",
+              boxShadow: getGlow(city.csi),
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = "translateY(-4px)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
           >
-            {/* City header */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500 text-sm font-bold">
-                  #{index + 1}
-                </span>
-                <h3 className="font-bold capitalize text-white">
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "12px", color: "#334155", fontWeight: "700" }}>#{index+1}</span>
+                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#fff", textTransform: "capitalize" }}>
                   {city.city}
                 </h3>
               </div>
-              <span className={`text-xs px-2 py-1 rounded-full text-white font-medium ${getColor(city.csi)}`}>
+              <div style={{
+                background: getColor(city.csi),
+                color: "#fff", borderRadius: "20px",
+                padding: "3px 12px", fontSize: "11px", fontWeight: "600",
+                boxShadow: getGlow(city.csi)
+              }}>
                 {city.level}
+              </div>
+            </div>
+
+            {/* Score */}
+            <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginBottom: "12px" }}>
+              <span style={{ fontSize: "42px", fontWeight: "800", color: getColor(city.csi), lineHeight: 1 }}>
+                {city.csi}
               </span>
+              <span style={{ fontSize: "12px", color: "#64748b" }}>/ 100</span>
             </div>
 
-            {/* CSI bar */}
-            <div className="mb-3">
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-400">CSI Score</span>
-                <span className={`font-bold ${getTextColor(city.csi)}`}>
-                  {city.csi}
-                </span>
-              </div>
-              <div className="w-full bg-slate-700 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${getColor(city.csi)}`}
-                  style={{ width: `${city.csi}%` }}
-                />
-              </div>
+            {/* Bar */}
+            <div style={{ background: "#1e293b", borderRadius: "4px", height: "6px", marginBottom: "12px" }}>
+              <div style={{
+                width: `${city.csi}%`, height: "6px",
+                background: `linear-gradient(90deg, ${getColor(city.csi)}, ${getColor(city.csi)}aa)`,
+                borderRadius: "4px", transition: "width 1s ease"
+              }} />
             </div>
 
-            {/* Timestamp */}
-            <p className="text-xs text-slate-500">
+            {/* Time */}
+            <p style={{ fontSize: "11px", color: "#334155" }}>
               🕐 {new Date(city.timestamp).toLocaleTimeString("en-IN")}
             </p>
           </div>

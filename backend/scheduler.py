@@ -15,13 +15,36 @@ from csi.calculator              import calculate_csi
 from database                    import save_city_score, create_tables
 
 AUTO_REFRESH_CITIES = [
+    # Metro cities
     "delhi", "mumbai", "bangalore", "chennai",
-    "kolkata", "hyderabad", "pune", "ahmedabad",
-    "jaipur", "lucknow", "kanpur", "nagpur",
-    "indore", "bhopal", "patna", "surat",
-    "agra", "varanasi", "chandigarh", "kochi",
-]
+    "kolkata", "hyderabad",
 
+    # Tier 1
+    "pune", "ahmedabad", "surat", "jaipur",
+    "lucknow", "kanpur", "nagpur", "indore",
+    "bhopal", "patna", "ludhiana", "agra",
+    "varanasi", "meerut", "amritsar", "chandigarh",
+    "rajkot", "vadodara", "nashik", "aurangabad",
+    "faridabad", "ghaziabad", "noida", "gurgaon",
+
+    # Tier 2 — South
+    "coimbatore", "madurai", "visakhapatnam",
+    "vijayawada", "kochi", "thiruvananthapuram",
+    "kozhikode", "mysuru", "hubli", "mangalore",
+    "tiruchirappalli", "salem", "tirupati",
+
+    # Tier 2 — East
+    "bhubaneswar", "guwahati", "ranchi",
+    "patna", "raipur", "dhanbad",
+
+    # Tier 2 — West
+    "jodhpur", "udaipur", "kota",
+    "jabalpur", "gwalior",
+
+    # Hill stations & others
+    "shimla", "dehradun", "srinagar",
+    "jammu", "pondicherry", "panaji",
+]
 async def refresh_city(city: str):
     try:
         aqi, traffic, weather = await asyncio.gather(
