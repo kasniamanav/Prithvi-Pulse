@@ -2,6 +2,13 @@
 import sys
 import os
 
+# Reconfigure stdout/stderr to utf-8 to prevent UnicodeEncodeError on Windows
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, BASE_DIR)
 

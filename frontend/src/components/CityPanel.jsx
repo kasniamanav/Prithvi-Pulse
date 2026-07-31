@@ -1,40 +1,102 @@
-// src/components/CityPanel.jsx
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 function getColor(csi) {
-  if (csi >= 80) return "#ef4444"
-  if (csi >= 60) return "#f97316"
-  if (csi >= 40) return "#eab308"
-  if (csi >= 20) return "#22c55e"
-  return "#3b82f6"
+  if (csi >= 80) return "#ef4444" // Extreme (Red)
+  if (csi >= 60) return "#f97316" // Very High (Orange)
+  if (csi >= 40) return "#eab308" // High (Yellow)
+  if (csi >= 20) return "#22c55e" // Moderate (Green)
+  return "#3b82f6" // Low (Blue)
 }
 
-function getBgColor(csi) {
-  if (csi >= 80) return "#ef444420"
-  if (csi >= 60) return "#f9731620"
-  if (csi >= 40) return "#eab30820"
-  if (csi >= 20) return "#22c55e20"
-  return "#3b82f620"
+function getGradientClass(val) {
+  if (val >= 80) return "from-red-500 to-rose-600 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+  if (val >= 60) return "from-orange-500 to-amber-600 shadow-[0_0_8px_rgba(249,115,22,0.4)]"
+  if (val >= 40) return "from-yellow-400 to-amber-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]"
+  if (val >= 20) return "from-green-400 to-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+  return "from-blue-400 to-indigo-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]"
 }
 
-function Bar({ label, value }) {
+// Circular Gauge component
+function CircularGauge({ value }) {
   const color = getColor(value)
+  const r = 50
+  const circ = 2 * Math.PI * r // ~314.16
+  const [offset, setOffset] = useState(circ)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const percentage = value / 100
+      setOffset(circ - percentage * circ)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [value, circ])
+
   return (
-    <div style={{ marginBottom: "12px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-        <span style={{ fontSize: "12px", color: "#94a3b8" }}>{label}</span>
-        <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600" }}>
-          {value.toFixed(1)}
+    <div className="relative flex flex-col items-center justify-center py-6 bg-slate-950/40 rounded-2xl border border-slate-800/60 my-5 shadow-inner">
+      <svg className="w-36 h-36 transform -rotate-90" viewBox="0 0 120 120">
+        {/* Background Dial Track */}
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          className="stroke-slate-800/40"
+          strokeWidth="9"
+          fill="none"
+        />
+        {/* Glowing Dial Overlay */}
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          stroke={color}
+          strokeWidth="9"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          fill="none"
+          style={{
+            transition: "stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1)",
+            filter: `drop-shadow(0 0 6px ${color}cc)`
+          }}
+        />
+      </svg>
+      {/* Central Labels */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center select-none">
+        <span className="text-xs text-slate-400 uppercase tracking-widest font-black">CSI Score</span>
+        <span
+          style={{ color }}
+          className="text-4xl font-black tracking-tighter leading-none mt-1.5"
+        >
+          {value}
         </span>
+        <span className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">/ 100</span>
       </div>
-      <div style={{ width: "100%", background: "#334155", borderRadius: "4px", height: "6px" }}>
-        <div style={{
-          width: `${value}%`,
-          background: color,
-          height: "6px",
-          borderRadius: "4px",
-          transition: "width 0.5s ease"
-        }} />
+    </div>
+  )
+}
+
+// Parameter Breakdown Bar
+function Bar({ label, value }) {
+  const [width, setWidth] = useState("0%")
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setWidth(`${value}%`)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [value])
+
+  return (
+    <div className="mb-4 last:mb-0">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-extrabold text-white">{value.toFixed(1)}</span>
+      </div>
+      <div className="w-full bg-slate-950/60 rounded-full h-3 overflow-hidden border border-slate-900/60 p-[2px]">
+        <div
+          style={{ width }}
+          className={`h-full rounded-full bg-gradient-to-r ${getGradientClass(value)} transition-all duration-1000 ease-out`}
+        />
       </div>
     </div>
   )
@@ -52,132 +114,115 @@ export default function CityPanel({ city, data, loading, onSearch }) {
   }
 
   return (
-    <div style={{ padding: "16px", height: "100%", display: "flex", flexDirection: "column" }}>
-
-      {/* Search bar */}
-      <form onSubmit={handleSearch} style={{ marginBottom: "16px", display: "flex", gap: "8px" }}>
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Search any Indian city..."
-          style={{
-            flex: 1, background: "#334155", color: "#fff",
-            border: "1px solid #475569", borderRadius: "8px",
-            padding: "8px 12px", fontSize: "13px", outline: "none"
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            background: "#22c55e", color: "#fff", border: "none",
-            borderRadius: "8px", padding: "8px 16px",
-            fontSize: "13px", fontWeight: "600", cursor: "pointer"
-          }}
-        >
-          Go
-        </button>
-      </form>
-
-      {/* Empty state */}
-      {!city && !loading && (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🗺️</div>
-          <p style={{ color: "#94a3b8", fontSize: "14px", lineHeight: "1.6" }}>
-            Click any city dot on the map or search above to see its City Stress Index
-          </p>
-        </div>
-      )}
-
-      {/* Loading */}
-      {loading && (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{
-            width: "32px", height: "32px",
-            border: "2px solid #22c55e",
-            borderTopColor: "transparent",
-            borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
-            marginBottom: "12px"
-          }} />
-          <p style={{ color: "#94a3b8", fontSize: "13px" }}>Fetching live data...</p>
-        </div>
-      )}
-
-      {/* City data */}
-      {data && !loading && (
-        <div style={{ flex: 1, overflowY: "auto" }}>
-
-          {/* City name */}
-          <div style={{ marginBottom: "16px" }}>
-            <h2 style={{ fontSize: "22px", fontWeight: "700", color: "#fff", textTransform: "capitalize" }}>
-              {data.city}
-            </h2>
-            <p style={{ fontSize: "12px", color: "#64748b" }}>India • Live data</p>
+    <div className="p-5 h-full flex flex-col justify-between overflow-y-auto">
+      <div>
+        {/* Prominent Search bar - perfectly aligned h-10 */}
+        <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+          <div className="relative flex-1">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs select-none">🔍</span>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Search Indian city..."
+              className="w-full h-10 bg-[#1e293b]/40 text-white placeholder-slate-500 border border-slate-800 focus:border-[#22c55e]/50 focus:shadow-[0_0_15px_rgba(34,197,94,0.15)] rounded-xl pl-9 pr-3 text-xs font-semibold outline-none transition-all duration-300"
+            />
           </div>
+          <button
+            type="submit"
+            className="h-10 bg-gradient-to-r from-[#22C55E] to-[#16A34A] hover:from-[#22C55E]/90 hover:to-[#16A34A]/90 text-white border-0 rounded-xl px-5 text-xs font-extrabold shadow-[0_4px_12px_rgba(34,197,94,0.15)] hover:scale-[1.02] active:scale-95 cursor-pointer transition-all duration-205"
+          >
+            Search
+          </button>
+        </form>
 
-          {/* CSI Score card */}
-          <div style={{
-            background: getBgColor(data.csi),
-            border: `1px solid ${getColor(data.csi)}40`,
-            borderRadius: "12px", padding: "20px",
-            marginBottom: "16px", textAlign: "center"
-          }}>
-            <p style={{ fontSize: "11px", color: "#94a3b8", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "1px" }}>
-              City Stress Index
+        {/* Empty state */}
+        {!city && !loading && (
+          <div className="flex-1 flex flex-col items-center justify-center text-center py-16 px-4 border border-dashed border-slate-800 rounded-2xl bg-[#0f172a]/20 backdrop-blur-sm">
+            <div className="text-4xl mb-4 select-none animate-pulse">🗺️</div>
+            <h3 className="text-xs font-black text-white uppercase tracking-wider mb-2">City Spotlight</h3>
+            <p className="text-slate-400 text-xs leading-relaxed max-w-[240px] mx-auto font-medium">
+              Click any active node on the map or search a city above to inspect multi-dimensional stress telemetry.
             </p>
-            <p style={{ fontSize: "56px", fontWeight: "700", color: getColor(data.csi), lineHeight: 1, marginBottom: "8px" }}>
-              {data.csi}
-            </p>
-            <div style={{
-              display: "inline-block", background: getColor(data.csi),
-              color: "#fff", borderRadius: "20px",
-              padding: "4px 16px", fontSize: "13px", fontWeight: "600"
-            }}>
-              {data.emoji} {data.level}
-            </div>
           </div>
+        )}
 
-          {/* Parameter breakdown */}
-          <div style={{
-            background: "#0f172a", borderRadius: "12px",
-            padding: "16px", marginBottom: "16px",
-            border: "1px solid #1e293b"
-          }}>
-            <p style={{ fontSize: "11px", fontWeight: "700", color: "#94a3b8", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "1px" }}>
-              Parameter Breakdown
-            </p>
-            <Bar label="💨 Air Quality (AQI)"   value={data.breakdown.aqi} />
-            <Bar label="🚗 Traffic Congestion"   value={data.breakdown.traffic} />
-            <Bar label="🌤️ Weather Stress"       value={data.breakdown.weather} />
-            <Bar label="👥 Population Density"   value={data.breakdown.population} />
-            <Bar label="🔊 Noise Pollution"      value={data.breakdown.noise} />
+        {/* Loading state */}
+        {loading && (
+          <div className="flex-1 flex flex-col items-center justify-center py-16">
+            <div className="w-10 h-10 border-3 border-[#22c55e] border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-[#22c55e] text-xs font-extrabold uppercase tracking-widest animate-pulse">Syncing Telemetry...</p>
           </div>
+        )}
 
-          {/* Formula weights */}
-          <div style={{
-            background: "#0f172a", borderRadius: "12px",
-            padding: "16px", border: "1px solid #1e293b"
-          }}>
-            <p style={{ fontSize: "11px", fontWeight: "700", color: "#94a3b8", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "1px" }}>
-              CSI Formula Weights
-            </p>
-            {Object.entries(data.weights).map(([key, val]) => (
-              <div key={key} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                <span style={{ fontSize: "12px", color: "#64748b", textTransform: "capitalize" }}>{key}</span>
-                <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600" }}>
-                  {(val * 100).toFixed(0)}%
-                </span>
+        {/* City detailed data */}
+        {data && !loading && (
+          <div className="space-y-5 animate-slideIn">
+            
+            {/* Header info */}
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-black text-white capitalize tracking-tight leading-none">
+                  {data.city}
+                </h2>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1.5">India • Real-time telemetry</p>
               </div>
-            ))}
-          </div>
+              <div
+                style={{
+                  backgroundColor: `${getColor(data.csi)}15`,
+                  color: getColor(data.csi),
+                  borderColor: `${getColor(data.csi)}40`
+                }}
+                className="border rounded-full px-2.5 py-1 text-xs font-extrabold uppercase tracking-widest flex items-center gap-1 select-none"
+              >
+                <span>{data.emoji}</span>
+                <span>{data.level}</span>
+              </div>
+            </div>
 
-        </div>
-      )}
+            {/* Circular score dial display */}
+            <CircularGauge value={data.csi} />
+
+            {/* Parameter Breakdown */}
+            <div className="bg-[#0f172a]/70 border border-slate-800/80 rounded-2xl p-5 shadow-lg backdrop-blur-sm">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
+                Telemetry Breakdown
+              </p>
+              <div className="space-y-4">
+                <Bar label="💨 Air Quality Index" value={data.breakdown.aqi} />
+                <Bar label="🚗 Traffic Congestion" value={data.breakdown.traffic} />
+                <Bar label="🌤️ Climate Stress" value={data.breakdown.weather} />
+                <Bar label="👥 Population Stress" value={data.breakdown.population} />
+                <Bar label="🔊 Noise Telemetry" value={data.breakdown.noise} />
+              </div>
+            </div>
+
+            {/* CSI Weights */}
+            <div className="bg-[#0f172a]/70 border border-slate-800/80 rounded-2xl p-5 shadow-lg backdrop-blur-sm">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+                Index Coefficients
+              </p>
+              <div className="divide-y divide-slate-800/40">
+                {Object.entries(data.weights).map(([key, val]) => (
+                  <div key={key} className="flex justify-between items-center py-2.5 first:pt-0 last:pb-0">
+                    <span className="text-xs text-slate-400 font-bold uppercase tracking-wider capitalize">{key}</span>
+                    <span className="text-xs text-slate-200 font-extrabold">{(val * 100).toFixed(0)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
+      </div>
 
       <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slideIn {
+          animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
     </div>

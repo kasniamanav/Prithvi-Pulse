@@ -94,40 +94,27 @@ export default function App() {
   }, [])
 
   return (
-    <div style={{
-      height: "100vh", width: "100vw",
-      display: "flex", flexDirection: "column",
-      background: "#030712", overflow: "hidden",
-      fontFamily: "'Inter', sans-serif"
-    }}>
+    <div className="h-screen w-screen flex flex-col bg-[#030712] overflow-hidden text-slate-100 font-sans antialiased">
 
       {/* Animated background */}
-      <div style={{
-        position: "fixed", inset: 0, zIndex: 0,
-        background: "radial-gradient(ellipse at 20% 50%, #0f172a 0%, #030712 60%)",
-        pointerEvents: "none"
-      }} />
+      <div className="fixed inset-0 z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#030712] to-[#030712] pointer-events-none opacity-80" />
 
       {/* Notification toast */}
       {notification && (
-        <div style={{
-          position: "fixed", top: "80px", right: "24px",
-          zIndex: 9999, padding: "12px 20px",
-          background: notification.type === "error" ? "#ef444420" : "#22c55e20",
-          border: `1px solid ${notification.type === "error" ? "#ef4444" : "#22c55e"}`,
-          borderRadius: "12px", color: "#fff", fontSize: "13px",
-          backdropFilter: "blur(10px)",
-          animation: "slideIn 0.3s ease",
-          boxShadow: notification.type === "error"
-            ? "0 0 20px #ef444440"
-            : "0 0 20px #22c55e40"
-        }}>
+        <div
+          className={`fixed top-20 right-6 z-[9999] px-5 py-3 border rounded-xl text-xs font-semibold backdrop-blur-md transition-all duration-300 shadow-lg ${
+            notification.type === "error"
+              ? "bg-red-500/10 border-red-500/30 text-red-200 shadow-red-500/10"
+              : "bg-emerald-500/10 border-emerald-500/30 text-emerald-200 shadow-emerald-500/10"
+          }`}
+          style={{ animation: "slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both" }}
+        >
           {notification.type === "error" ? "❌" : "✅"} {notification.msg}
         </div>
       )}
 
       {/* Header */}
-      <div style={{ position: "relative", zIndex: 100 }}>
+      <div className="relative z-[100]">
         <Header
           view={view}
           setView={setView}
@@ -137,18 +124,16 @@ export default function App() {
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, overflow: "hidden", position: "relative", zIndex: 1 }}>
+      <div className="flex-1 overflow-hidden relative z-10">
 
         {/* Map view */}
-        <div style={{
-          position: "absolute", inset: 0,
-          display: "flex",
-          opacity: view === "map" ? 1 : 0,
-          pointerEvents: view === "map" ? "all" : "none",
-          transition: "opacity 0.3s ease"
-        }}>
+        <div
+          className={`absolute inset-0 flex transition-opacity duration-300 ease-in-out ${
+            view === "map" ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+        >
           {/* Map */}
-          <div style={{ flex: 1, position: "relative" }}>
+          <div className="flex-1 h-full relative">
             <CityMap
               dashboard={dashboard}
               onCityClick={fetchCity}
@@ -157,13 +142,7 @@ export default function App() {
           </div>
 
           {/* Side panel */}
-          <div style={{
-            width: "400px",
-            background: "linear-gradient(180deg, #0f172a 0%, #030712 100%)",
-            overflowY: "auto",
-            borderLeft: "1px solid #1e293b",
-            position: "relative", zIndex: 10
-          }}>
+          <div className="w-[420px] h-full bg-[#0f172a]/60 backdrop-blur-md border-l border-slate-800/80 flex flex-col relative z-20 shadow-2xl overflow-y-auto">
             <CityPanel
               city={selectedCity}
               data={cityData}
@@ -174,13 +153,11 @@ export default function App() {
         </div>
 
         {/* Dashboard view */}
-        <div style={{
-          position: "absolute", inset: 0,
-          overflowY: "auto",
-          opacity: view === "dashboard" ? 1 : 0,
-          pointerEvents: view === "dashboard" ? "all" : "none",
-          transition: "opacity 0.3s ease"
-        }}>
+        <div
+          className={`absolute inset-0 overflow-y-auto transition-opacity duration-300 ease-in-out ${
+            view === "dashboard" ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+        >
           <Dashboard
             dashboard={dashboard}
             onCityClick={(city) => {
@@ -197,17 +174,6 @@ export default function App() {
         @keyframes slideIn {
           from { opacity: 0; transform: translateX(20px); }
           to   { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 8px #22c55e; }
-          50%       { opacity: 0.5; box-shadow: 0 0 16px #22c55e; }
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
         }
         * { scrollbar-width: thin; scrollbar-color: #1e293b #030712; }
         ::-webkit-scrollbar { width: 4px; }
